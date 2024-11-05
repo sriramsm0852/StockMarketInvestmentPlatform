@@ -1,0 +1,2 @@
+# StockMarketInvestmentPlatform
+StockMarketInvestmentPlatform group_2
