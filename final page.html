@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>SafeCryptoStocks Dashboard</title>
+    <style>
+        body {
+            background: linear-gradient(to bottom right, #d0e1f9, #4f6d7a);
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 300px;
+            display: none;
+        }
+        .container.active {
+            display: block;
+        }
+        input[type="text"], input[type="password"], input[type="number"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #4f6d7a;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #3b5361;
+        }
+        .link {
+            display: block;
+            margin-top: 10px;
+            color: #4f6d7a;
+            text-decoration: none;
+        }
+        .dashboard {
+            display: none;
+        }
+        .dashboard.active {
+            display: block;
+        }
+        header {
+            background: #4f6d7a;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        nav a {
+            color: white;
+            margin: 0 10px;
+            text-decoration: none;
+        }
+        .profile span {
+            background: #fff;
+            color: #4f6d7a;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        main {
+            padding: 20px;
+        }
+        .portfolio-summary, .portfolio-details, .market-view, .budget-view {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        .actions {
+            display: flex;
+            justify-content: space-around;
+        }
+        .learn-page, .portfolio-page, .market-page, .budget-page {
+            display: none;
+        }
+        .back-button {
+            padding: 10px 20px;
+            background-color: #4f6d7a;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+        }
+        canvas {
+            width: 100%;
+            height: 400px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container" id="login-container">
+        <h2>SafeCryptoStocks</h2>
+        <!-- Login Form -->
+        <form id="login-form" onsubmit="handleLogin(event)">
+            <h3>Login</h3>
+            <input type="text" id="login-email" placeholder="Email" required>
+            <input type="password" id="login-password" placeholder="Password" required>
+            <button type="submit">Login</button>
+            <a class="link" href="#" onclick="toggleForm()">Don't have an account? Register</a>
+        </form>
+        <!-- Register Form -->
+        <form id="register-form" style="display: none;" onsubmit="handleRegister(event)">
+            <h3>Sign Up</h3>
+            <input type="text" id="first-name" placeholder="First Name" required>
+            <input type="text" id="last-name" placeholder="Last Name" required>
+            <input type="text" id="register-email" placeholder="Email" required>
+            <input type="password" id="register-password" placeholder="Password" required>
+            <input type="text" id="address" placeholder="Address" required>
+            <input type="text" id="phone-number" placeholder="Phone Number" required>
+            <input type="text" id="profile-picture" placeholder="Profile Picture URL" required>
+            <button type="submit">Register</button>
+            <a class="link" href="#" onclick="toggleForm()">Already have an account? Login</a>
+        </form>
+    </div>
+
+    <div class="dashboard" id="dashboard">
+        <header>
+            <h2>SafeCryptoStocks Dashboard</h2>
+            <nav>
+                <a href="#" onclick="navigateTo('portfolio')">Portfolio</a>
+                <a href="#" onclick="navigateTo('market')">Market</a>
+                <a href="#" onclick="navigateTo('budget')">Budget</a>
+                <a href="#" onclick="navigateTo('learn')">Learn</a>
+            </nav>
+            <div class="profile">
+                <span id="profile-username" onclick="toggleDropdown()">Username</span>
+                <div id="profile-dropdown" class="profile-dropdown">
+                    <a href="#" onclick="navigateTo('settings')">Settings</a>
+                    <a href="#" onclick="navigateTo('helpdesk')">Help Desk</a>
+                    <a href="#" onclick="handleLogout()">Logout</a>
+                </div>
+            </div>
+        </header>
+        <main>
+            <section class="portfolio-summary">
+                <h3>Current Balance: $872,043.00</h3>
+                <p>Profit/Loss: $52,384.00</p>
+            </section>
+
+            <!-- Portfolio Page -->
+            <div class="portfolio-page" id="portfolio-page">
+                <h3>Portfolio</h3>
+                <div class="portfolio-details">
+                    <h4>Your Holdings</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Asset</th>
+                                <th>Current Price</th>
+                                <th>Holdings</th>
+                                <th>Profit/Loss</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="portfolio-table-body">
+                            <!-- Portfolio items will be populated here via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <a href="#" class="back-button" onclick="navigateBack()">Back to Dashboard</a>
+            </div>
+
+            <!-- Market Page -->
+            <div class="market-page" id="market-page">
+                <h3>Market Overview</h3>
+                <div class="market-view">
+                    <h4>Stocks and Cryptos</h4>
+                    <p>Here you can view the latest market data and trends.</p>
+                    <!-- Placeholder for market data (can be populated via API later) -->
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Price</th>
+                                <th>Change</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="market-table-body">
+                            <tr>
+                                <td>AAPL</td>
+                                <td>$150.00</td>
+                                <td>+2%</td>
+                                <td><button onclick="buyStock('AAPL')">Buy</button></td>
+                            </tr>
+                            <tr>
+                                <td>GOOGL</td>
+                                <td>$2000.00</td>
+                                <td>-1.5%</td>
+                                <td><button onclick="buyStock('GOOGL')">Buy</button></td>
+                            </tr>
+                            <tr>
+                                <td>NVIDIA</td>
+                                <td>$1000.00</td>
+                                <td>-1.5%</td>
+                                <td><button onclick="buyStock('NVIDIA')">Buy</button></td>
+                            </tr>
+                            <tr>
+                                <td>TESLA</td>
+                                <td>$500.00</td>
+                                <td>-1.5%</td>
+                                <td><button onclick="buyStock('TESLA')">Buy</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <a href="#" class="back-button" onclick="navigateBack()">Back to Dashboard</a>
+            </div>
+
+            <!-- Budget Page -->
+            <div class="budget-page" id="budget-page">
+                <h3>Your Budget</h3>
+                <div class="budget-view">
+                    <h4>Track your spending vs. budget</h4>
+                    <p>Here you can set and monitor your budget.</p>
+                    <!-- Placeholder for budget data -->
+                </div>
+                <a href="#" class="back-button" onclick="navigateBack()">Back to Dashboard</a>
+            </div>
+
+            <!-- Learn Page -->
+            <div class="learn-page" id="learn-page">
+                <h3>Learn About Stocks</h3>
+                <p>Watch educational videos on stock market and investing.</p>
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/BMI4rXieiuY?autoplay=1&si=K-RYvKmtqqUafPan" title="Stock Market 101" frameborder="0" allowfullscreen></iframe>
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/9fQwp4UHZHQ?autoplay=1&si=3BJlTDbNcKc4Whut" title="Stock Market 102" frameborder="0" allowfullscreen></iframe>
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/_T0omgvPzPc?autoplay=1&si=frb8ZSgjojPQfyo0" title="Stock Market 103" frameborder="0" allowfullscreen></iframe>
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/O-q_XBxvjLI?autoplay=1" title="Stock Market 104" frameborder="0" allowfullscreen></iframe>
+                <a href="#" class="back-button" onclick="navigateBack()">Back to Dashboard</a>
+            </div>
+
+
+            <!-- Stock Price Graph -->
+            <div class="stock-graph">
+                <h3>Stock Price Trends</h3>
+                <canvas id="stockPriceChart"></canvas>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Sample stock data for graph
+        const stockData = {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Stock Price - AAPL,GOOGL,NIVDIA,TESLA',
+                data: [148, 151, 149, 152, 154, 157, 160],
+                borderColor: '#4f6d7a',
+                backgroundColor: 'rgba(79, 109, 122, 0.2)',
+                borderWidth: 1
+            }]
+        };
+
+        // Create the chart
+        const ctx = document.getElementById('stockPriceChart').getContext('2d');
+        const stockPriceChart = new Chart(ctx, {
+            type: 'line',
+            data: stockData,
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: false
+                    }
+                }
+            }
+        });
+
+        // Sample portfolio data
+        const portfolioData = [
+            { symbol: 'AAPL', price: 150, holdings: 10, buyPrice: 140, profitLoss: 100 },
+            { symbol: 'GOOGL', price: 2000, holdings: 5, buyPrice: 1900, profitLoss: 500 },
+            { symbol: 'NVIDIA', price: 1000, holdings: 10, buyPrice: 990, profitLoss: 100 },
+            { symbol: 'TESLA', price: 500, holdings: 10, buyPrice: 440, profitLoss: 100 }
+        ];
+
+        // Display the portfolio table
+        function populatePortfolio() {
+            const portfolioTableBody = document.getElementById('portfolio-table-body');
+            portfolioTableBody.innerHTML = '';
+
+            portfolioData.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.symbol}</td>
+                    <td>$${item.price}</td>
+                    <td>${item.holdings}</td>
+                    <td>$${item.profitLoss}</td>
+                    <td>
+                        <button onclick="buyStock('${item.symbol}')">Buy</button>
+                        <button onclick="sellStock('${item.symbol}')">Sell</button>
+                    </td>
+                `;
+                portfolioTableBody.appendChild(row);
+            });
+        }
+
+        // Buy stock functionality
+        function buyStock(symbol) {
+            const amount = prompt(`How many shares of ${symbol} would you like to buy?`);
+            if (amount) {
+                const stock = portfolioData.find(item => item.symbol === symbol);
+                stock.holdings += parseInt(amount);
+                alert(`You bought ${amount} shares of ${symbol}`);
+                populatePortfolio();
+            }
+        }
+
+        // Sell stock functionality
+        function sellStock(symbol) {
+            const amount = prompt(`How many shares of ${symbol} would you like to sell?`);
+            if (amount) {
+                const stock = portfolioData.find(item => item.symbol === symbol);
+                if (stock.holdings >= amount) {
+                    stock.holdings -= parseInt(amount);
+                    alert(`You sold ${amount} shares of ${symbol}`);
+                    populatePortfolio();
+                } else {
+                    alert(`You do not have enough shares to sell.`);
+                }
+            }
+        }
+
+        // Login handler
+        function handleLogin(event) {
+            event.preventDefault();
+
+            // Capture the email as the username (you can adjust this to use a real username)
+            const email = document.getElementById('login-email').value;
+    
+            // Update the username in the profile section
+            document.getElementById('profile-username').textContent = email.split('@')[0]; // Extract the username part of the email
+
+            // Hide the login container and show the dashboard
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+        }
+
+
+        // Navigate to different sections (Portfolio, Market, Budget, Learn)
+        function navigateTo(page) {
+            document.querySelectorAll('.portfolio-page, .market-page, .budget-page, .learn-page').forEach(el => el.style.display = 'none');
+            document.getElementById(`${page}-page`).style.display = 'block';
+        }
+
+        // Navigate back to dashboard
+        function navigateBack() {
+            document.getElementById('dashboard').style.display = 'block';
+            document.querySelectorAll('.portfolio-page, .market-page, .budget-page, .learn-page').forEach(el => el.style.display = 'none');
+        }
+
+        window.onload = function() {
+            document.getElementById('login-container').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
